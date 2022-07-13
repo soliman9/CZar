@@ -3,7 +3,6 @@ from crypto.aes import encrypt, decrypt
 from ioUtils.clipboardUtils import copyToClipboard
 from ioUtils.ioUtilities import readfromFile, writetoFile
 from hashlib import sha256
-from configparser import ConfigParser
 import argparse
 import logging
 from cryptography.exceptions import InvalidTag
