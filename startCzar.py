@@ -66,6 +66,7 @@ class CZar():
         aadHash = sha256(passAad).hexdigest()
         writetoFile(encUsrName, passIdHash)
         writetoFile(encPassword, aadHash)
+        print('\nPassword saved successfully!\n')
 
     def getPassword(self):
         # Retrieving password
@@ -110,7 +111,7 @@ class CZar():
 
         password = decrypt(self.mKey, encPassword, passAad, passNonce)
         copyToClipboard(password.decode('utf-8'))
-
+        print('\nPassword copied successfully!\n')
 
     def start(self):
         stillRunning = True
