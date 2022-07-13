@@ -2,13 +2,18 @@ from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from os import urandom
 
 
-def encrypt(self, data, aad):
-    key = AESGCM.generate_key(bit_length=256)
+def encrypt(data, aad, key=None, nonce=None):
+    if key is None:
+        key = AESGCM.generate_key(bit_length=256)
+    if nonce is None:
+        nonce = urandom(12)
     aesgcm = AESGCM(key)
-    nonce = urandom(12)
-    return aesgcm.encrypt(nonce, data, aad)
+    return (aesgcm.encrypt(nonce, data, aad),
+            key,
+            nonce
+            )
 
 
-def decrypt(self, key, cData, aad, nonce):
+def decrypt(key, cData, aad, nonce):
     aesgcm = AESGCM(key)
     return aesgcm.decrypt(nonce, cData, aad)
