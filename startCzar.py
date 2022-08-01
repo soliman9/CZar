@@ -47,9 +47,6 @@ class CZar():
             usrName.encode('utf-8'), usrAad,
             key=self.mKey, nonce=self.baseNonce
         )
-        logging.info('key ' + str(key))
-        logging.info('aad ' + str(usrAad))
-        logging.info('nonce ' + str(nonce))
 
         passIdHash = sha256(passId.encode('utf-8')).hexdigest()
         passNonceString = passIdHash + self.mPassword
