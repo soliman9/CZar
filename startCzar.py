@@ -1,7 +1,7 @@
 from ioUtils.readFromShell import *
 from crypto.aes import encrypt, decrypt
 from ioUtils.clipboardUtils import copyToClipboard
-from ioUtils.ioUtilities import readfromFile, writetoFile
+from ioUtils.ioUtilities import readfromFile, writetoFile, deleteFile
 from hashlib import sha256
 import argparse
 import logging
@@ -81,9 +81,6 @@ class CZar():
         # Decrypting username
         usrAad = passId.encode('utf-8')
 
-        logging.info('key ' + str(self.mKey))
-        logging.info('aad ' + str(usrAad))
-        logging.info('nonce ' + str(self.baseNonce))
         try:
             usrName = decrypt(self.mKey, encUsrName, usrAad, self.baseNonce).decode('utf-8')
         except InvalidTag:
@@ -112,6 +109,38 @@ class CZar():
         copyToClipboard(password.decode('utf-8'))
         print('\nPassword copied successfully!\n')
 
+    def deletePassword(self):
+        passId = readPassId()
+        passIdHash = sha256(passId.encode('utf-8')).hexdigest()
+        try:
+            encUsrName = readfromFile(passIdHash)
+            deleteFile(passIdHash)
+        except FileNotFoundError:
+            logging.error('Incorrect Password ID.')
+            print('Error: Incorrect Input.')
+            return
+        # Decrypting username
+        usrAad = passId.encode('utf-8')
+        try:
+            usrName = decrypt(self.mKey, encUsrName, usrAad, self.baseNonce).decode('utf-8')
+        except InvalidTag:
+            print('Error: Incorrect Input.')
+            return
+
+        passAad = (passId + usrName).encode('utf-8')
+        aadHash = sha256(passAad).hexdigest()
+
+        # Delete password file
+        try:
+            deleteFile(aadHash)
+        except FileNotFoundError:
+            logging.error('Cannot find password file {}'.format(
+                aadHash)
+            )
+            print('Error: Something went wrong. Try again!')
+            return
+        print('\nPassword Deleted successfully!\n')
+
     def start(self):
         stillRunning = True
         while stillRunning:
@@ -121,6 +150,10 @@ class CZar():
                     stillRunning = False
             elif self.cZarMode == 'get':
                 self.getPassword()
+                if readChoice('Do you want to continue using CZar?') == 'n':
+                    stillRunning = False
+            elif self.cZarMode == 'del':
+                self.deletePassword()
                 if readChoice('Do you want to continue using CZar?') == 'n':
                     stillRunning = False
             else:
