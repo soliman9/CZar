@@ -8,16 +8,16 @@ import logging
 from cryptography.exceptions import InvalidTag
 
 
-parser = argparse.ArgumentParser(
+argParser = argparse.ArgumentParser(
     description='CZar Password manager CLI startup')
-parser.add_argument(
+argParser.add_argument(
     '-m', '--mode', type=str,
     dest='cZarMode',
     help='CZar startup mode; \nset: to create new password; \nget: to retrieve password',
     default='get'
 )
-# Collect arguments from user through cli
-args = parser.parse_args()
+# Get arguments from user through cli
+args = argParser.parse_args()
 
 
 class CZar():
