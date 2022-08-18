@@ -104,6 +104,7 @@ class CZar():
 
         password = decrypt(self.mKey, encPassword, passAad, passNonce)
         copyToClipboard(password.decode('utf-8'))
+        print('Your account username is: {}'.format(usrName))
         print('\nPassword copied successfully!\n')
 
     def deletePassword(self):
