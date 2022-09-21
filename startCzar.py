@@ -40,7 +40,12 @@ class CZar():
         # password ID must be unique
         passId = readPassId()
         usrName = readUserName(passId)
-        password = readPassword(passId).encode('utf-8')
+        Password_1 = readPassword(passId).encode('utf-8')
+        print('Please, re-enter your password')
+        password_2 = readPassword(passId).encode('utf-8')
+        if password_2 != Password_1:
+            print('Error: Passwords don\'t match ..')
+            return
 
         usrAad = passId.encode('utf-8')
         encUsrName, key, nonce = encrypt(
