@@ -5,6 +5,11 @@ CZar is a lightweight secure open source CLI password manager.
 # Version 1.0
 Simple command line version
 
+Installing required libraries 
+
+`pip install -r requirements.txt`
+
+
 To create Master password and add your accounts usernames and passwords
 
 `python startCzar.py -m set`
