@@ -1,4 +1,3 @@
-pip install clipboard
-pip install cryptography
-pip install maskpass
-pip install hashlib
+clipboard
+cryptography
+maskpass
