@@ -1,5 +1,6 @@
 # CZar
-CZar is a secure open source password manager
+CZar is a lightweight secure open source CLI password manager.
+
 
 # Version 1.0
 Simple command line version
