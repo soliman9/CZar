@@ -20,7 +20,7 @@ def readPassId():
     passId = ''
     while len(passId) == 0:
         passId = input(
-            'Enter your password ID [example: facebook account]: '
+            'Enter your password ID [example: facebook]: '
         )
     return passId
 
