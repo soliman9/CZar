@@ -2,7 +2,7 @@
 CZar is a lightweight secure open source CLI password manager.
 
 
-# Version 1.0
+# Version 1.0.0
 Simple command line version
 
 Installing required libraries 
