@@ -1,4 +1,4 @@
-from ioUtils.readFromShell import *
+from ioUtils.readFromShell import readChoice, readPassId, readUserName, readPassword
 from crypto.aes import encrypt, decrypt
 from ioUtils.clipboardUtils import copyToClipboard
 from ioUtils.ioUtilities import readfromFile, writetoFile, deleteFile
@@ -6,6 +6,7 @@ from hashlib import sha256
 import argparse
 import logging
 from cryptography.exceptions import InvalidTag
+from crypto.randomPwd import generatePassword
 
 
 argParser = argparse.ArgumentParser(
@@ -40,12 +41,18 @@ class CZar():
         # password ID must be unique
         passId = readPassId()
         usrName = readUserName(passId)
-        Password_1 = readPassword(passId).encode('utf-8')
-        print('Please, re-enter your password')
-        password_2 = readPassword(passId).encode('utf-8')
-        if password_2 != Password_1:
-            print('Error: Passwords don\'t match ..')
-            return
+
+        # Ask user if he wants to get new password
+        if readChoice('Do you want Czar to choose a new secure password for you?') == 'y':
+            password = generatePassword().encode('utf-8')
+        else:
+            Password_1 = readPassword(passId).encode('utf-8')
+            print('Please, re-enter your password')
+            password_2 = readPassword(passId).encode('utf-8')
+            if password_2 != Password_1:
+                print('Error: Passwords don\'t match ..')
+                return
+            password = password_2
 
         usrAad = passId.encode('utf-8')
         encUsrName, key, nonce = encrypt(
