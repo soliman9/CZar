@@ -1,11 +1,11 @@
-from ioUtils.readFromShell import readChoice, readPassId, readUserName, readPassword
-from crypto.aes import encrypt, decrypt
-from ioUtils.clipboardUtils import copyToClipboard
-from ioUtils.ioUtilities import readfromFile, writetoFile, deleteFile
 from hashlib import sha256
 import argparse
 import logging
 from cryptography.exceptions import InvalidTag
+from ioUtils.readFromShell import readChoice, readPassId, readUserName, readPassword
+from crypto.aes import encrypt, decrypt
+from ioUtils.clipboardUtils import copyToClipboard
+from ioUtils.ioUtilities import readfromFile, writetoFile, deleteFile
 from crypto.randomPwd import generatePassword
 
 
@@ -24,7 +24,7 @@ args = argParser.parse_args()
 class CZar():
     def __init__(self, args):
         logging.basicConfig(
-            filename='data/logs/czar.log',
+            filename='logs/czar.log',
             format='%(levelname)s | %(asctime)s | %(message)s',
             datefmt='%m/%d/%Y %H:%M',
             level=logging.INFO
@@ -161,7 +161,7 @@ class CZar():
             elif self.cZarMode == 'get':
                 self.getPassword()
                 if readChoice('Do you want to continue using CZar?') == 'n':
-                    stillRunning = False
+                   stillRunning = False
             elif self.cZarMode == 'del':
                 self.deletePassword()
                 if readChoice('Do you want to continue using CZar?') == 'n':
