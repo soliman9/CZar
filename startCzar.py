@@ -1,11 +1,14 @@
-from ioUtils.readFromShell import readChoice, readPassId, readUserName, readPassword
-from crypto.aes import encrypt, decrypt
-from ioUtils.clipboardUtils import copyToClipboard
-from ioUtils.ioUtilities import readfromFile, writetoFile, deleteFile
+import os
+import platform
+import ctypes
 from hashlib import sha256
 import argparse
 import logging
 from cryptography.exceptions import InvalidTag
+from ioUtils.readFromShell import readChoice, readPassId, readUserName, readPassword
+from crypto.aes import encrypt, decrypt
+from ioUtils.clipboardUtils import copyToClipboard
+from ioUtils.ioUtilities import readfromFile, writetoFile, deleteFile
 from crypto.randomPwd import generatePassword
 
 
@@ -23,8 +26,12 @@ args = argParser.parse_args()
 
 class CZar():
     def __init__(self, args):
+        try:
+            os.mkdir('logs')
+        except FileExistsError:
+            pass
         logging.basicConfig(
-            filename='data/logs/czar.log',
+            filename='logs/czar.log',
             format='%(levelname)s | %(asctime)s | %(message)s',
             datefmt='%m/%d/%Y %H:%M',
             level=logging.INFO
@@ -36,6 +43,16 @@ class CZar():
         baseNonceString = '0000' + self.mPassword
         self.baseNonce = sha256(baseNonceString.encode(
             'utf-8')).hexdigest()[:24].encode('utf-8')
+        # Create data directory
+        self.currentOS = platform.system()
+        try:
+            if self.currentOS == 'Windows':
+                os.mkdir('data')
+                ctypes.windll.kernel32.SetFileAttributesW('data', 0x02)
+            elif self.currentOS == 'Linux':
+                os.mkdir('.data')
+        except FileExistsError:
+            pass  # Directory already exists
 
     def savePassword(self):
         # password ID must be unique
@@ -72,8 +89,8 @@ class CZar():
 
         # write data to files
         aadHash = sha256(passAad).hexdigest()
-        writetoFile(encUsrName, passIdHash)
-        writetoFile(encPassword, aadHash)
+        writetoFile(encUsrName, passIdHash, self.currentOS)
+        writetoFile(encPassword, aadHash, self.currentOS)
         print('\nPassword saved successfully!\n')
 
     def getPassword(self):
@@ -81,7 +98,7 @@ class CZar():
         passId = readPassId()
         passIdHash = sha256(passId.encode('utf-8')).hexdigest()
         try:
-            encUsrName = readfromFile(passIdHash)
+            encUsrName = readfromFile(passIdHash, self.currentOS)
         except FileNotFoundError:
             logging.error('Incorrect Password ID.')
             print('Error: Incorrect Input.')
@@ -101,7 +118,7 @@ class CZar():
         aadHash = sha256(passAad).hexdigest()
         # Read Encrypted password
         try:
-            encPassword = readfromFile(aadHash)
+            encPassword = readfromFile(aadHash, self.currentOS)
         except FileNotFoundError:
             logging.error('Cannot read password file {}'.format(
                 aadHash)
@@ -123,8 +140,8 @@ class CZar():
         passId = readPassId()
         passIdHash = sha256(passId.encode('utf-8')).hexdigest()
         try:
-            encUsrName = readfromFile(passIdHash)
-            deleteFile(passIdHash)
+            encUsrName = readfromFile(passIdHash, self.currentOS)
+            deleteFile(passIdHash, self.currentOS)
         except FileNotFoundError:
             logging.error('Incorrect Password ID.')
             print('Error: Incorrect Input.')
@@ -142,7 +159,7 @@ class CZar():
 
         # Delete password file
         try:
-            deleteFile(aadHash)
+            deleteFile(aadHash, self.currentOS)
         except FileNotFoundError:
             logging.error('Cannot find password file {}'.format(
                 aadHash)
@@ -161,7 +178,7 @@ class CZar():
             elif self.cZarMode == 'get':
                 self.getPassword()
                 if readChoice('Do you want to continue using CZar?') == 'n':
-                    stillRunning = False
+                   stillRunning = False
             elif self.cZarMode == 'del':
                 self.deletePassword()
                 if readChoice('Do you want to continue using CZar?') == 'n':
