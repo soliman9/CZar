@@ -27,11 +27,11 @@ args = argParser.parse_args()
 class CZar():
     def __init__(self, args):
         try:
-            os.mkdir('logs')
+            os.mkdir('Czar_logs')
         except FileExistsError:
             pass
         logging.basicConfig(
-            filename='logs/czar.log',
+            filename='Czar_logs/czar.log',
             format='%(levelname)s | %(asctime)s | %(message)s',
             datefmt='%m/%d/%Y %H:%M',
             level=logging.INFO
