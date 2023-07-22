@@ -17,7 +17,7 @@ argParser = argparse.ArgumentParser(
 argParser.add_argument(
     '-m', '--mode', type=str,
     dest='cZarMode',
-    help='CZar startup mode; \nset: to create new password; \nget: to retrieve password',
+    help='CZar startup mode; set: to create new password; get: to retrieve password; del: to delete a password',
     default='get'
 )
 # Get arguments from user through cli
@@ -27,11 +27,11 @@ args = argParser.parse_args()
 class CZar():
     def __init__(self, args):
         try:
-            os.mkdir('logs')
+            os.mkdir('Czar_logs')
         except FileExistsError:
             pass
         logging.basicConfig(
-            filename='logs/czar.log',
+            filename='Czar_logs/czar.log',
             format='%(levelname)s | %(asctime)s | %(message)s',
             datefmt='%m/%d/%Y %H:%M',
             level=logging.INFO
