@@ -9,7 +9,8 @@ from ioUtils.readFromShell import \
     readChoice, readPassId, readUserName, readPassword, readMode
 from crypto.aes import encrypt, decrypt
 from ioUtils.clipboardUtils import copyToClipboard
-from ioUtils.ioUtilities import readfromFile, writetoFile, deleteFile
+from ioUtils.ioUtilities import readfromFile, writetoFile, deleteFile, \
+    appendToTextFile, readfromTextFile
 from crypto.randomPwd import generatePassword
 
 
@@ -53,9 +54,36 @@ class CZar():
         except FileExistsError:
             pass  # Directory already exists
 
+    def savePassId(self, passId):
+        passIdFile = sha256(self.mKey).hexdigest()
+        passIdList = readfromTextFile(passIdFile, self.currentOS)
+        if passId in passIdList:
+            return False
+        else:
+            appendToTextFile(passId, passIdFile, self.currentOS)
+            return True
+
+    def removePassId(self, passId):
+        passIdFile = sha256(self.mKey).hexdigest()
+        passIdList = readfromTextFile(passIdFile, self.currentOS)
+        if passId in passIdList:
+            passIdList.remove(passId)
+            # Clear PassID File
+            with open(passIdFile, 'w') as f:
+                f.write('')
+            for pId in passIdList:
+                appendToTextFile(pId, passIdFile, self.currentOS)
+
     def savePassword(self):
         # password ID must be unique
         passId = readPassId()
+        while not self.savePassId(passId):
+            print('This Password ID exists.')
+            if readChoice(
+                 f'Do you want to update the password of \"{passId}\"?') == 'y':
+                break
+            else:
+                passId = readPassId()
         usrName = readUserName(passId)
 
         # Ask user if he wants to get new password
@@ -96,6 +124,16 @@ class CZar():
         print('\nPassword saved successfully!\n')
 
     def getPassword(self):
+        # Display list pf IDs.
+        passIdFile = sha256(self.mKey).hexdigest()
+        passIdList = readfromTextFile(passIdFile, self.currentOS)
+        print('Here\'s a list of saved password IDs')
+        pList = ''
+        for i in range(len(passIdList)):
+            if (i % 5) == 0:
+                pList += '\n'
+            pList += (passIdList[i] + ' '*4)
+        print(pList)
         # Retrieving password
         passId = readPassId()
         passIdHash = sha256(passId.encode('utf-8')).hexdigest()
@@ -167,6 +205,7 @@ class CZar():
         # Delete password file
         try:
             deleteFile(aadHash, self.currentOS)
+            self.removePassId(passId)
         except FileNotFoundError:
             logging.error('Cannot find password file {}'.format(
                 aadHash)
