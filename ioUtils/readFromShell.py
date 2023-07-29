@@ -46,3 +46,13 @@ def readPassword(passId):
             mask=''
         )
     return password
+
+
+def readMode():
+    supportedModes = set(['get', 'set', 'del'])
+    mode = ''
+    while (len(mode) == 0 or (mode not in supportedModes)):
+        mode = input(
+            'Enter CZar starting mode [get, set, del]: '
+        ).lower()
+    return mode

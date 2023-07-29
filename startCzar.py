@@ -5,7 +5,8 @@ from hashlib import sha256
 import argparse
 import logging
 from cryptography.exceptions import InvalidTag
-from ioUtils.readFromShell import readChoice, readPassId, readUserName, readPassword
+from ioUtils.readFromShell import \
+    readChoice, readPassId, readUserName, readPassword, readMode
 from crypto.aes import encrypt, decrypt
 from ioUtils.clipboardUtils import copyToClipboard
 from ioUtils.ioUtilities import readfromFile, writetoFile, deleteFile
@@ -17,10 +18,11 @@ argParser = argparse.ArgumentParser(
 argParser.add_argument(
     '-m', '--mode', type=str,
     dest='cZarMode',
-    help='CZar startup mode; set: to create new password; get: to retrieve password; del: to delete a password',
-    default='get'
+    help='CZar startup mode; set: to create new password; \
+        get: to retrieve password; del: to delete a password',
+    default=''
 )
-# Get arguments from user through cli
+# Get arguments from user through CLI
 args = argParser.parse_args()
 
 
@@ -34,7 +36,7 @@ class CZar():
             filename='Czar_logs/czar.log',
             format='%(levelname)s | %(asctime)s | %(message)s',
             datefmt='%m/%d/%Y %H:%M',
-            level=logging.INFO
+            level=logging.ERROR
         )
         self.cZarMode = args.cZarMode.lower()
         # Init master key
@@ -149,7 +151,8 @@ class CZar():
         # Decrypting username
         usrAad = passId.encode('utf-8')
         try:
-            usrName = decrypt(self.mKey, encUsrName, usrAad, self.baseNonce).decode('utf-8')
+            usrName = decrypt(
+                self.mKey, encUsrName, usrAad, self.baseNonce).decode('utf-8')
         except InvalidTag:
             print('Error: Incorrect Input.')
             return
@@ -170,24 +173,28 @@ class CZar():
 
     def start(self):
         stillRunning = True
+        if self.cZarMode:
+            mode = self.cZarMode
+        else:
+            mode = readMode()
+
         while stillRunning:
-            if self.cZarMode == 'set':
+            if mode == 'set':
                 self.savePassword()
                 if readChoice('Do you want to continue using CZar?') == 'n':
                     stillRunning = False
-            elif self.cZarMode == 'get':
+            elif mode == 'get':
                 self.getPassword()
                 if readChoice('Do you want to continue using CZar?') == 'n':
-                   stillRunning = False
-            elif self.cZarMode == 'del':
+                    stillRunning = False
+            elif mode == 'del':
                 self.deletePassword()
                 if readChoice('Do you want to continue using CZar?') == 'n':
                     stillRunning = False
             else:
                 logging.error('Undefined input mode!')
                 print('Undefined input mode!')
-                if readChoice('Do you want to continue using CZar?') == 'n':
-                    stillRunning = False
+                stillRunning = False
 
         # Clear clipboard before shutting down CZar
         copyToClipboard('')
