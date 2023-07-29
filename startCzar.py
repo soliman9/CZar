@@ -42,9 +42,6 @@ class CZar():
         # Init master key
         self.mPassword = readPassword('Master')
         self.mKey = sha256(self.mPassword.encode('utf-8')).digest()
-        baseNonceString = '0000' + self.mPassword
-        self.baseNonce = sha256(baseNonceString.encode(
-            'utf-8')).hexdigest()[:24].encode('utf-8')
         # Create data directory
         self.currentOS = platform.system()
         try:
@@ -62,7 +59,8 @@ class CZar():
         usrName = readUserName(passId)
 
         # Ask user if he wants to get new password
-        if readChoice('Do you want Czar to choose a new secure password for you?') == 'y':
+        if readChoice('Do you want Czar to choose'
+                      ' a new secure password for you?') == 'y':
             password = generatePassword().encode('utf-8')
         else:
             Password_1 = readPassword(passId).encode('utf-8')
@@ -73,10 +71,12 @@ class CZar():
                 return
             password = password_2
 
+        baseNonce = sha256(passId.encode(
+            'utf-8')).hexdigest()[:24].encode('utf-8')
         usrAad = passId.encode('utf-8')
         encUsrName, key, nonce = encrypt(
             usrName.encode('utf-8'), usrAad,
-            key=self.mKey, nonce=self.baseNonce
+            key=self.mKey, nonce=baseNonce
         )
 
         passIdHash = sha256(passId.encode('utf-8')).hexdigest()
@@ -108,9 +108,11 @@ class CZar():
 
         # Decrypting username
         usrAad = passId.encode('utf-8')
-
+        baseNonce = sha256(passId.encode(
+            'utf-8')).hexdigest()[:24].encode('utf-8')
         try:
-            usrName = decrypt(self.mKey, encUsrName, usrAad, self.baseNonce).decode('utf-8')
+            usrName = decrypt(
+                self.mKey, encUsrName, usrAad, baseNonce).decode('utf-8')
         except InvalidTag:
             print('Error: Incorrect Input.')
             return
@@ -150,9 +152,11 @@ class CZar():
             return
         # Decrypting username
         usrAad = passId.encode('utf-8')
+        baseNonce = sha256(passId.encode(
+            'utf-8')).hexdigest()[:24].encode('utf-8')
         try:
             usrName = decrypt(
-                self.mKey, encUsrName, usrAad, self.baseNonce).decode('utf-8')
+                self.mKey, encUsrName, usrAad, baseNonce).decode('utf-8')
         except InvalidTag:
             print('Error: Incorrect Input.')
             return
