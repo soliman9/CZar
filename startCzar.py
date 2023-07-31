@@ -7,7 +7,7 @@ import logging
 from cryptography.exceptions import InvalidTag
 from ioUtils.readFromShell import \
     readChoice, readPassId, readUserName, readPassword, readMode
-from crypto.aes import encrypt, decrypt
+from crypto.aes import encrypt, decrypt, generateSalt, generateKey
 from ioUtils.clipboardUtils import copyToClipboard
 from ioUtils.ioUtilities import readfromFile, writetoFile, deleteFile, \
     appendToTextFile, readfromTextFile
@@ -19,8 +19,8 @@ argParser = argparse.ArgumentParser(
 argParser.add_argument(
     '-m', '--mode', type=str,
     dest='cZarMode',
-    help='CZar startup mode; set: to create new password; \
-        get: to retrieve password; del: to delete a password',
+    help='CZar startup mode; set (s): to create new password; \
+        get (g): to retrieve password; del (d): to delete a password',
     default=''
 )
 # Get arguments from user through CLI
@@ -42,7 +42,7 @@ class CZar():
         self.cZarMode = args.cZarMode.lower()
         # Init master key
         self.mPassword = readPassword('Master')
-        self.mKey = sha256(self.mPassword.encode('utf-8')).digest()
+
         # Create data directory
         self.currentOS = platform.system()
         try:
@@ -53,6 +53,26 @@ class CZar():
                 os.mkdir('.data')
         except FileExistsError:
             pass  # Directory already exists
+        # generating master key
+        mSaltFileName = sha256(self.mPassword.encode('utf-8')).hexdigest()
+        try:
+            mSalt = readfromFile(mSaltFileName, self.currentOS)
+        except FileNotFoundError:
+            mSalt = generateSalt()
+            writetoFile(mSalt, mSaltFileName, self.currentOS)
+        self.mKey = generateKey(mSalt, self.mPassword.encode('utf-8'))
+
+    def displayPassIds(self):
+        # Display list pf IDs.
+        passIdFile = sha256(self.mKey).hexdigest()
+        passIdList = readfromTextFile(passIdFile, self.currentOS)
+        print('Here\'s a list of saved password IDs')
+        pList = ''
+        for i in range(len(passIdList)):
+            if (i % 5) == 0:
+                pList += '\n'
+            pList += (passIdList[i] + ' '*4)
+        print(pList)
 
     def savePassId(self, passId):
         passIdFile = sha256(self.mKey).hexdigest()
@@ -68,19 +88,23 @@ class CZar():
         passIdList = readfromTextFile(passIdFile, self.currentOS)
         if passId in passIdList:
             passIdList.remove(passId)
-            # Clear PassID File
-            with open(passIdFile, 'w') as f:
-                f.write('')
+            # Delete PassID File and Create a new one.
+            deleteFile(passIdFile, self.currentOS)
             for pId in passIdList:
-                appendToTextFile(pId, passIdFile, self.currentOS)
+                if len(pId) != 0:
+                    appendToTextFile(pId, passIdFile, self.currentOS)
 
     def savePassword(self):
+        self.displayPassIds()
+        print('=== Set/Update Password ===')
         # password ID must be unique
         passId = readPassId()
+        updatePassword = False
         while not self.savePassId(passId):
             print('This Password ID exists.')
             if readChoice(
                  f'Do you want to update the password of \"{passId}\"?') == 'y':
+                updatePassword = True
                 break
             else:
                 passId = readPassId()
@@ -119,21 +143,24 @@ class CZar():
 
         # write data to files
         aadHash = sha256(passAad).hexdigest()
+        if updatePassword:
+            try:
+                deleteFile(passIdHash, self.currentOS)
+            except FileNotFoundError:
+                logging.error('File I/O Error')
+                print('Error: Try again!')
+                return
+            try:
+                deleteFile(aadHash, self.currentOS)
+            except FileNotFoundError:
+                pass  # Username updated
         writetoFile(encUsrName, passIdHash, self.currentOS)
         writetoFile(encPassword, aadHash, self.currentOS)
         print('\nPassword saved successfully!\n')
 
     def getPassword(self):
-        # Display list pf IDs.
-        passIdFile = sha256(self.mKey).hexdigest()
-        passIdList = readfromTextFile(passIdFile, self.currentOS)
-        print('Here\'s a list of saved password IDs')
-        pList = ''
-        for i in range(len(passIdList)):
-            if (i % 5) == 0:
-                pList += '\n'
-            pList += (passIdList[i] + ' '*4)
-        print(pList)
+        self.displayPassIds()
+        print('=== Get Password ===')
         # Retrieving password
         passId = readPassId()
         passIdHash = sha256(passId.encode('utf-8')).hexdigest()
@@ -179,7 +206,11 @@ class CZar():
         print('\nPassword copied successfully!\n')
 
     def deletePassword(self):
+        self.displayPassIds()
+        print('=== Delete Password ===')
         passId = readPassId()
+        if readChoice(f'Are you sure you want to delete \'{passId}\'?') == 'n':
+            return
         passIdHash = sha256(passId.encode('utf-8')).hexdigest()
         try:
             encUsrName = readfromFile(passIdHash, self.currentOS)
@@ -222,15 +253,15 @@ class CZar():
             mode = readMode()
 
         while stillRunning:
-            if mode == 'set':
+            if mode == 'set' or mode == 's':
                 self.savePassword()
                 if readChoice('Do you want to continue using CZar?') == 'n':
                     stillRunning = False
-            elif mode == 'get':
+            elif mode == 'get' or mode == 'g':
                 self.getPassword()
                 if readChoice('Do you want to continue using CZar?') == 'n':
                     stillRunning = False
-            elif mode == 'del':
+            elif mode == 'del' or mode == 'd':
                 self.deletePassword()
                 if readChoice('Do you want to continue using CZar?') == 'n':
                     stillRunning = False
