@@ -49,10 +49,10 @@ def readPassword(passId):
 
 
 def readMode():
-    supportedModes = set(['get', 'set', 'del'])
+    supportedModes = set(['get', 'set', 'del', 'g', 's', 'd'])
     mode = ''
     while (len(mode) == 0 or (mode not in supportedModes)):
         mode = input(
-            'Enter CZar starting mode [get, set, del]: '
+            'Enter CZar starting mode [get (g), set (s), del (d)]: '
         ).lower()
     return mode
