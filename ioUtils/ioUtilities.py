@@ -32,3 +32,31 @@ def deleteFile(fileName, currentOS):
         path = '.data/.{}'.format(fileName)
 
     os.remove(path)
+
+
+def appendToTextFile(data, fileName, currentOS):
+    if currentOS == 'Windows':
+        path = 'data/{}'.format(fileName)
+        with open(path, "a") as f:
+            f.write(data + '\n')
+        ctypes.windll.kernel32.SetFileAttributesW(path, 0x02)
+    elif currentOS == 'Linux':
+        path = '.data/.{}'.format(fileName)
+        with open(path, "a") as f:
+            f.write(data + '\n')
+
+
+def readfromTextFile(fileName, currentOS):
+    if currentOS == 'Windows':
+        path = 'data/{}'.format(fileName)
+    elif currentOS == 'Linux':
+        path = '.data/.{}'.format(fileName)
+
+    try:
+        with open(path, "r") as f:
+            lines = f.read().split('\n')
+    except FileNotFoundError:
+        with open(path, "a") as f:
+            pass
+        lines = []
+    return lines

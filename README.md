@@ -2,15 +2,14 @@
 CZar is a lightweight secure open source CLI password manager.
 
 
-## Conquer (v1.0.0)
-### Simple command line version
+### To run from source code
 
 * Installing required dependencies 
 
     `pip install -r requirements.txt`
 
 
-* To create Master password and add your accounts usernames and passwords
+* To create Master password and add or update your accounts usernames and passwords
 
     `python startCzar.py -m set`
 
@@ -23,4 +22,5 @@ CZar is a lightweight secure open source CLI password manager.
 * To delete accounts usernames and passwords using the Master password
 
     `python startCzar.py -m del`
+
 

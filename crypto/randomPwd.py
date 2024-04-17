@@ -1,5 +1,5 @@
-import secrets
-import random
+from secrets import choice
+from random import shuffle
 
 
 def generatePassword(length=16) -> str:
@@ -9,9 +9,9 @@ def generatePassword(length=16) -> str:
     asciiList2 = list(range(47, 96))
     asciiList3 = list(range(97, 126))
     asciiListAll = asciiList1 + asciiList2 + asciiList3
-    random.shuffle(asciiListAll)
+    shuffle(asciiListAll)
     password = ''.join(
-        chr(secrets.choice(asciiListAll)) for _ in range(length)
+        chr(choice(asciiListAll)) for _ in range(length)
     )
     return password
 
