@@ -5,7 +5,6 @@ from hashlib import sha256
 import argparse
 import logging
 from cryptography.exceptions import InvalidTag
-<<<<<<< HEAD
 from ioUtils.readFromShell import (
     readChoice,
     readPassId,
@@ -22,20 +21,11 @@ from ioUtils.ioUtilities import (
     appendToTextFile,
     readfromTextFile,
 )
-=======
-from ioUtils.readFromShell import \
-    readChoice, readPassId, readUserName, readPassword, readMode
-from crypto.aes import encrypt, decrypt, generateSalt, generateKey
-from ioUtils.clipboardUtils import copyToClipboard
-from ioUtils.ioUtilities import readfromFile, writetoFile, deleteFile, \
-    appendToTextFile, readfromTextFile
->>>>>>> 4021a9f42a5c86a0666388a8e4916d24373caa6c
 from crypto.randomPwd import generatePassword
 
 
 argParser = argparse.ArgumentParser(description="CZar Password manager CLI startup")
 argParser.add_argument(
-<<<<<<< HEAD
     "-m",
     "--mode",
     type=str,
@@ -43,13 +33,6 @@ argParser.add_argument(
     help="CZar startup mode; set (s): to create new password; \
         get (g): to retrieve password; del (d): to delete a password",
     default="",
-=======
-    '-m', '--mode', type=str,
-    dest='cZarMode',
-    help='CZar startup mode; set (s): to create new password; \
-        get (g): to retrieve password; del (d): to delete a password',
-    default=''
->>>>>>> 4021a9f42a5c86a0666388a8e4916d24373caa6c
 )
 # Get arguments from user through CLI
 args = argParser.parse_args()
@@ -69,11 +52,7 @@ class CZar:
         )
         self.cZarMode = args.cZarMode.lower()
         # Init master key
-<<<<<<< HEAD
         self.mPassword = readPassword("Master")
-=======
-        self.mPassword = readPassword('Master')
->>>>>>> 4021a9f42a5c86a0666388a8e4916d24373caa6c
 
         # Create data directory
         self.currentOS = platform.system()
@@ -86,41 +65,24 @@ class CZar:
         except FileExistsError:
             pass  # Directory already exists
         # generating master key
-<<<<<<< HEAD
         mSaltFileName = sha256(self.mPassword.encode("utf-8")).hexdigest()
-=======
-        mSaltFileName = sha256(self.mPassword.encode('utf-8')).hexdigest()
->>>>>>> 4021a9f42a5c86a0666388a8e4916d24373caa6c
         try:
             mSalt = readfromFile(mSaltFileName, self.currentOS)
         except FileNotFoundError:
             mSalt = generateSalt()
             writetoFile(mSalt, mSaltFileName, self.currentOS)
-<<<<<<< HEAD
         self.mKey = generateKey(mSalt, self.mPassword.encode("utf-8"))
-=======
-        self.mKey = generateKey(mSalt, self.mPassword.encode('utf-8'))
->>>>>>> 4021a9f42a5c86a0666388a8e4916d24373caa6c
 
     def displayPassIds(self):
         # Display list pf IDs.
         passIdFile = sha256(self.mKey).hexdigest()
         passIdList = readfromTextFile(passIdFile, self.currentOS)
-<<<<<<< HEAD
         print("Here's a list of saved password IDs")
         pList = ""
         for i in range(len(passIdList)):
             if (i % 5) == 0:
                 pList += "\n"
             pList += passIdList[i] + " " * 4
-=======
-        print('Here\'s a list of saved password IDs')
-        pList = ''
-        for i in range(len(passIdList)):
-            if (i % 5) == 0:
-                pList += '\n'
-            pList += (passIdList[i] + ' '*4)
->>>>>>> 4021a9f42a5c86a0666388a8e4916d24373caa6c
         print(pList)
 
     def savePassId(self, passId):
@@ -145,23 +107,13 @@ class CZar:
 
     def savePassword(self):
         self.displayPassIds()
-<<<<<<< HEAD
         print("=== Set/Update Password ===")
-=======
-        print('=== Set/Update Password ===')
->>>>>>> 4021a9f42a5c86a0666388a8e4916d24373caa6c
         # password ID must be unique
         passId = readPassId()
         updatePassword = False
         while not self.savePassId(passId):
-<<<<<<< HEAD
             print("This Password ID exists.")
             if readChoice(f'Do you want to update the password of "{passId}"?') == "y":
-=======
-            print('This Password ID exists.')
-            if readChoice(
-                 f'Do you want to update the password of \"{passId}\"?') == 'y':
->>>>>>> 4021a9f42a5c86a0666388a8e4916d24373caa6c
                 updatePassword = True
                 break
             else:
@@ -169,17 +121,11 @@ class CZar:
         usrName = readUserName(passId)
 
         # Ask user if he wants to get new password
-<<<<<<< HEAD
         if (
             readChoice("Do you want Czar to choose" " a new secure password for you?")
             == "y"
         ):
             password = generatePassword().encode("utf-8")
-=======
-        if readChoice('Do you want Czar to choose'
-                      ' a new secure password for you?') == 'y':
-            password = generatePassword().encode('utf-8')
->>>>>>> 4021a9f42a5c86a0666388a8e4916d24373caa6c
         else:
             Password_1 = readPassword(passId).encode("utf-8")
             print("Please, re-enter your password")
@@ -189,19 +135,10 @@ class CZar:
                 return
             password = password_2
 
-<<<<<<< HEAD
         baseNonce = sha256(passId.encode("utf-8")).hexdigest()[:24].encode("utf-8")
         usrAad = passId.encode("utf-8")
         encUsrName, key, nonce = encrypt(
             usrName.encode("utf-8"), usrAad, key=self.mKey, nonce=baseNonce
-=======
-        baseNonce = sha256(passId.encode(
-            'utf-8')).hexdigest()[:24].encode('utf-8')
-        usrAad = passId.encode('utf-8')
-        encUsrName, key, nonce = encrypt(
-            usrName.encode('utf-8'), usrAad,
-            key=self.mKey, nonce=baseNonce
->>>>>>> 4021a9f42a5c86a0666388a8e4916d24373caa6c
         )
 
         passIdHash = sha256(passId.encode("utf-8")).hexdigest()
@@ -221,13 +158,8 @@ class CZar:
             try:
                 deleteFile(passIdHash, self.currentOS)
             except FileNotFoundError:
-<<<<<<< HEAD
                 logging.error("File I/O Error")
                 print("Error: Try again!")
-=======
-                logging.error('File I/O Error')
-                print('Error: Try again!')
->>>>>>> 4021a9f42a5c86a0666388a8e4916d24373caa6c
                 return
             try:
                 deleteFile(aadHash, self.currentOS)
@@ -239,11 +171,7 @@ class CZar:
 
     def getPassword(self):
         self.displayPassIds()
-<<<<<<< HEAD
         print("=== Get Password ===")
-=======
-        print('=== Get Password ===')
->>>>>>> 4021a9f42a5c86a0666388a8e4916d24373caa6c
         # Retrieving password
         passId = readPassId()
         passIdHash = sha256(passId.encode("utf-8")).hexdigest()
@@ -255,19 +183,10 @@ class CZar:
             return
 
         # Decrypting username
-<<<<<<< HEAD
         usrAad = passId.encode("utf-8")
         baseNonce = sha256(passId.encode("utf-8")).hexdigest()[:24].encode("utf-8")
         try:
             usrName = decrypt(self.mKey, encUsrName, usrAad, baseNonce).decode("utf-8")
-=======
-        usrAad = passId.encode('utf-8')
-        baseNonce = sha256(passId.encode(
-            'utf-8')).hexdigest()[:24].encode('utf-8')
-        try:
-            usrName = decrypt(
-                self.mKey, encUsrName, usrAad, baseNonce).decode('utf-8')
->>>>>>> 4021a9f42a5c86a0666388a8e4916d24373caa6c
         except InvalidTag:
             print("Error: Incorrect Input.")
             return
@@ -296,19 +215,11 @@ class CZar:
 
     def deletePassword(self):
         self.displayPassIds()
-<<<<<<< HEAD
         print("=== Delete Password ===")
         passId = readPassId()
         if readChoice(f"Are you sure you want to delete '{passId}'?") == "n":
             return
         passIdHash = sha256(passId.encode("utf-8")).hexdigest()
-=======
-        print('=== Delete Password ===')
-        passId = readPassId()
-        if readChoice(f'Are you sure you want to delete \'{passId}\'?') == 'n':
-            return
-        passIdHash = sha256(passId.encode('utf-8')).hexdigest()
->>>>>>> 4021a9f42a5c86a0666388a8e4916d24373caa6c
         try:
             encUsrName = readfromFile(passIdHash, self.currentOS)
             deleteFile(passIdHash, self.currentOS)
@@ -317,19 +228,10 @@ class CZar:
             print("Error: Incorrect Input.")
             return
         # Decrypting username
-<<<<<<< HEAD
         usrAad = passId.encode("utf-8")
         baseNonce = sha256(passId.encode("utf-8")).hexdigest()[:24].encode("utf-8")
         try:
             usrName = decrypt(self.mKey, encUsrName, usrAad, baseNonce).decode("utf-8")
-=======
-        usrAad = passId.encode('utf-8')
-        baseNonce = sha256(passId.encode(
-            'utf-8')).hexdigest()[:24].encode('utf-8')
-        try:
-            usrName = decrypt(
-                self.mKey, encUsrName, usrAad, baseNonce).decode('utf-8')
->>>>>>> 4021a9f42a5c86a0666388a8e4916d24373caa6c
         except InvalidTag:
             print("Error: Incorrect Input.")
             return
@@ -355,27 +257,15 @@ class CZar:
             mode = readMode()
 
         while stillRunning:
-<<<<<<< HEAD
             if mode == "set" or mode == "s":
-=======
-            if mode == 'set' or mode == 's':
->>>>>>> 4021a9f42a5c86a0666388a8e4916d24373caa6c
                 self.savePassword()
                 if readChoice("Do you want to continue using CZar?") == "n":
                     stillRunning = False
-<<<<<<< HEAD
             elif mode == "get" or mode == "g":
-=======
-            elif mode == 'get' or mode == 'g':
->>>>>>> 4021a9f42a5c86a0666388a8e4916d24373caa6c
                 self.getPassword()
                 if readChoice("Do you want to continue using CZar?") == "n":
                     stillRunning = False
-<<<<<<< HEAD
             elif mode == "del" or mode == "d":
-=======
-            elif mode == 'del' or mode == 'd':
->>>>>>> 4021a9f42a5c86a0666388a8e4916d24373caa6c
                 self.deletePassword()
                 if readChoice("Do you want to continue using CZar?") == "n":
                     stillRunning = False
