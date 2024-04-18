@@ -13,7 +13,7 @@ from ioUtils.readFromShell import (
     readMode,
 )
 from crypto.aes import encrypt, decrypt, generateSalt, generateKey
-from ioUtils.clipboardUtils import copyToClipboard
+from ioUtils.clipboardUtils import copyToClipboard, clearClipboard
 from ioUtils.ioUtilities import (
     readfromFile,
     writetoFile,
@@ -22,6 +22,8 @@ from ioUtils.ioUtilities import (
     readfromTextFile,
 )
 from crypto.randomPwd import generatePassword
+from time import time
+import threading
 
 
 argParser = argparse.ArgumentParser(description="CZar Password manager CLI startup")
@@ -72,6 +74,13 @@ class CZar:
             mSalt = generateSalt()
             writetoFile(mSalt, mSaltFileName, self.currentOS)
         self.mKey = generateKey(mSalt, self.mPassword.encode("utf-8"))
+        self.timerThread = None
+
+    def clipboardTimer(self):
+        start_time = time()
+        while time() - start_time < 60:
+            pass
+        clearClipboard()
 
     def displayPassIds(self):
         # Display list pf IDs.
@@ -263,6 +272,8 @@ class CZar:
                     stillRunning = False
             elif mode == "get" or mode == "g":
                 self.getPassword()
+                self.timerThread = threading.Thread(target=self.clipboardTimer)
+                self.timerThread.start()
                 if readChoice("Do you want to continue using CZar?") == "n":
                     stillRunning = False
             elif mode == "del" or mode == "d":

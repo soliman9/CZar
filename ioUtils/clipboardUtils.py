@@ -1,5 +1,9 @@
-import clipboard
+import pyperclip
 
 
 def copyToClipboard(txt):
-    clipboard.copy(txt)
+    pyperclip.copy(txt)
+
+def clearClipboard():
+    pyperclip.copy(" ")
+
