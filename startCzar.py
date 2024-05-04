@@ -1,4 +1,8 @@
 import os
+from time import time
+import threading
+import datetime
+import shutil
 import platform
 import ctypes
 from hashlib import sha256
@@ -22,8 +26,6 @@ from ioUtils.ioUtilities import (
     readfromTextFile,
 )
 from crypto.randomPwd import generatePassword
-from time import time
-import threading
 
 
 argParser = argparse.ArgumentParser(description="CZar Password manager CLI startup")
@@ -57,12 +59,15 @@ class CZar:
         self.mPassword = readPassword("Master")
 
         # Create data directory
+        self.dataDir = None
         self.currentOS = platform.system()
         try:
             if self.currentOS == "Windows":
+                self.dataDir = "data"
                 os.mkdir("data")
                 ctypes.windll.kernel32.SetFileAttributesW("data", 0x02)
             elif self.currentOS == "Linux":
+                self.dataDir = ".data"
                 os.mkdir(".data")
         except FileExistsError:
             pass  # Directory already exists
@@ -122,7 +127,7 @@ class CZar:
         updatePassword = False
         while not self.savePassId(passId):
             print("This Password ID exists.")
-            if readChoice(f'Do you want to update the password of "{passId}"?') == "y":
+            if readChoice(f"Do you want to update the password of '{passId}'?") == "y":
                 updatePassword = True
                 break
             else:
@@ -131,7 +136,7 @@ class CZar:
 
         # Ask user if he wants to get new password
         if (
-            readChoice("Do you want Czar to choose" " a new secure password for you?")
+            readChoice("Do you want Czar to choose a new secure password for you?")
             == "y"
         ):
             password = generatePassword().encode("utf-8")
@@ -253,10 +258,26 @@ class CZar:
             deleteFile(aadHash, self.currentOS)
             self.removePassId(passId)
         except FileNotFoundError:
-            logging.error("Cannot find password file {}".format(aadHash))
+            logging.error(f"Cannot find password file {aadHash}")
             print("Error: Something went wrong. Try again!")
             return
         print("\nPassword Deleted successfully!\n")
+
+
+    def exportData(self):
+        currentDateTime = str(datetime.datetime.now()).split(".")[0].replace(":", "").replace(" ", "-")
+        try:
+            if self.currentOS == "Windows":
+                shutil.make_archive(currentDateTime, "zip", self.dataDir)
+                return currentDateTime + ".zip"
+            elif self.currentOS == "Linux":
+                shutil.make_archive(currentDateTime, "gztar", self.dataDir)
+                return currentDateTime + ".tar.gz"
+            else:
+                return None
+        except Exception:
+            return None
+        return None
 
     def start(self):
         stillRunning = True
@@ -266,20 +287,34 @@ class CZar:
             mode = readMode()
 
         while stillRunning:
-            if mode == "set" or mode == "s":
+            if mode in ("set", "s"):
                 self.savePassword()
                 if readChoice("Do you want to continue using CZar?") == "n":
                     stillRunning = False
-            elif mode == "get" or mode == "g":
+            elif mode in ("get", "g"):
                 self.getPassword()
                 self.timerThread = threading.Thread(target=self.clipboardTimer)
                 self.timerThread.start()
                 if readChoice("Do you want to continue using CZar?") == "n":
                     stillRunning = False
-            elif mode == "del" or mode == "d":
+            elif mode in ("del", "d"):
                 self.deletePassword()
                 if readChoice("Do you want to continue using CZar?") == "n":
                     stillRunning = False
+                else:
+                    mode = readMode()
+            elif mode in ("export", "e"):
+                if readChoice("All encrypted files will be exported to current directory. Continue?") == "y":
+                    fileName = self.exportData()
+                    if fileName is not None:
+                        print(f"***Successful backup saved to: {fileName}")
+                        print("***You should save this file on another secured device.")
+                    else:
+                        print("Error: Unable to save a new backup file")
+                if readChoice("Do you want to continue using CZar?") == "n":
+                    stillRunning = False
+                else:
+                    mode = readMode()
             else:
                 logging.error("Undefined input mode!")
                 print("Undefined input mode!")
