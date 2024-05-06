@@ -333,7 +333,6 @@ class CZar:
                         print(f"***Successful backup import")
                     except Exception:
                         print("Error: Unable to import from backup file")
-                        raise
                 while readChoice("Shutdown CZar and start it again. Confirm?") == "n":
                     pass
                 stillRunning = False
