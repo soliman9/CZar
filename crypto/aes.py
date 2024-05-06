@@ -1,10 +1,10 @@
-from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from secrets import token_bytes
+from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 
 
-def encrypt(data, aad, key=None, nonce=None):
+def encrypt(data, aad, key=None, nonce=None) -> tuple:
     if key is None:
         key = AESGCM.generate_key(bit_length=256)
     if nonce is None:
@@ -16,16 +16,16 @@ def encrypt(data, aad, key=None, nonce=None):
             )
 
 
-def decrypt(key, cData, aad, nonce):
+def decrypt(key, cData, aad, nonce) -> bytes:
     aesgcm = AESGCM(key)
     return aesgcm.decrypt(nonce, cData, aad)
 
 
-def generateSalt():
+def generateSalt() -> bytes:
     return token_bytes(16)
 
 
-def generateKey(salt, password):
+def generateKey(salt, password) -> bytes:
     kdf = PBKDF2HMAC(
         algorithm=hashes.SHA256(),
         length=32,
