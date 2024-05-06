@@ -9,6 +9,8 @@ from hashlib import sha256
 import argparse
 import logging
 from cryptography.exceptions import InvalidTag
+from tabulate import tabulate
+from more_itertools import chunked_even
 from ioUtils.readFromShell import (
     readChoice,
     readPassId,
@@ -35,7 +37,8 @@ argParser.add_argument(
     type=str,
     dest="cZarMode",
     help="CZar startup mode; set (s): to create new password; \
-        get (g): to retrieve password; del (d): to delete a password",
+        get (g): to retrieve password; del (d): to delete a password; \
+        export (e): to export a backup compressed file.",
     default="",
 )
 # Get arguments from user through CLI
@@ -91,13 +94,11 @@ class CZar:
         # Display list pf IDs.
         passIdFile = sha256(self.mKey).hexdigest()
         passIdList = readfromTextFile(passIdFile, self.currentOS)
-        print("Here's a list of saved password IDs")
-        pList = ""
-        for i in range(len(passIdList)):
-            if (i % 5) == 0:
-                pList += "\n"
-            pList += passIdList[i] + " " * 4
-        print(pList)
+        print("Here are lists of saved password IDs")
+        passIdRows = list(chunked_even(passIdList, 5))
+        headers = [f"List {i + 1}" for i in range(5)]
+        print(tabulate(passIdRows, headers=headers, tablefmt="grid"))
+
 
     def savePassId(self, passId):
         passIdFile = sha256(self.mKey).hexdigest()
