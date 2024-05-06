@@ -17,6 +17,7 @@ from ioUtils.readFromShell import (
     readUserName,
     readPassword,
     readMode,
+    readBackupFileName,
 )
 from crypto.aes import encrypt, decrypt, generateSalt, generateKey
 from ioUtils.clipboardUtils import copyToClipboard, clearClipboard
@@ -64,6 +65,18 @@ class CZar:
         # Create data directory
         self.dataDir = None
         self.currentOS = platform.system()
+        self.makeDataDirectory()
+        # generating master key
+        mSaltFileName = sha256(self.mPassword.encode("utf-8")).hexdigest()
+        try:
+            mSalt = readfromFile(mSaltFileName, self.currentOS)
+        except FileNotFoundError:
+            mSalt = generateSalt()
+            writetoFile(mSalt, mSaltFileName, self.currentOS)
+        self.mKey = generateKey(mSalt, self.mPassword.encode("utf-8"))
+        self.timerThread = None
+
+    def makeDataDirectory(self):
         try:
             if self.currentOS == "Windows":
                 self.dataDir = "data"
@@ -74,15 +87,6 @@ class CZar:
                 os.mkdir(".data")
         except FileExistsError:
             pass  # Directory already exists
-        # generating master key
-        mSaltFileName = sha256(self.mPassword.encode("utf-8")).hexdigest()
-        try:
-            mSalt = readfromFile(mSaltFileName, self.currentOS)
-        except FileNotFoundError:
-            mSalt = generateSalt()
-            writetoFile(mSalt, mSaltFileName, self.currentOS)
-        self.mKey = generateKey(mSalt, self.mPassword.encode("utf-8"))
-        self.timerThread = None
 
     def clipboardTimer(self):
         start_time = time()
@@ -264,7 +268,6 @@ class CZar:
             return
         print("\nPassword Deleted successfully!\n")
 
-
     def exportData(self):
         currentDateTime = str(datetime.datetime.now()).split(".")[0].replace(":", "").replace(" ", "-")
         try:
@@ -279,6 +282,12 @@ class CZar:
         except Exception:
             return None
         return None
+
+    def importData(self, backupFileName):
+        shutil.rmtree(self.dataDir + '/')
+        self.makeDataDirectory()
+        shutil.unpack_archive(backupFileName, self.dataDir + '/')
+
 
     def start(self):
         stillRunning = True
@@ -316,6 +325,18 @@ class CZar:
                     stillRunning = False
                 else:
                     mode = readMode()
+            elif mode in ("import", "i"):
+                fileName = readBackupFileName()
+                if readChoice(f"Password data will be imported from {fileName}. Current data could be lost or replaced. Continue?") == "y":
+                    try:
+                        self.importData(fileName)
+                        print(f"***Successful backup import")
+                    except Exception:
+                        print("Error: Unable to import from backup file")
+                        raise
+                while readChoice("Shutdown CZar and start it again. Confirm?") == "n":
+                    pass
+                stillRunning = False
             else:
                 logging.error("Undefined input mode!")
                 print("Undefined input mode!")
