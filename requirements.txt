@@ -1,3 +1,5 @@
 pyperclip
 cryptography
 maskpass
+tabulate
+more_itertools
