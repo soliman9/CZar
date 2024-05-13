@@ -98,6 +98,7 @@ class CZar:
         # Display list pf IDs.
         passIdFile = sha256(self.mKey).hexdigest()
         passIdList = readfromTextFile(passIdFile, self.currentOS)
+        passIdList.sort()
         print("Here are lists of saved password IDs")
         passIdRows = list(chunked_even(passIdList, 5))
         headers = [f"List {i + 1}" for i in range(5)]

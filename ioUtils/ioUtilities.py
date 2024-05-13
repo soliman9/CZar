@@ -55,6 +55,7 @@ def readfromTextFile(fileName, currentOS):
     try:
         with open(path, "r") as f:
             lines = f.read().split('\n')
+            lines.remove('')
     except FileNotFoundError:
         with open(path, "a") as f:
             pass
