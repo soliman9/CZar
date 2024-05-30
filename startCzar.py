@@ -39,7 +39,8 @@ argParser.add_argument(
     dest="cZarMode",
     help="CZar startup mode; set (s): to create new password; \
         get (g): to retrieve password; del (d): to delete a password; \
-        export (e): to export a backup compressed file.",
+        export (e): to export a backup compressed file;\
+        import (i): to import passwords from a backup compressed file.",
     default="",
 )
 # Get arguments from user through CLI
