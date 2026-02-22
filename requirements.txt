@@ -3,3 +3,4 @@ cryptography
 maskpass
 tabulate
 more_itertools
+argon2-cffi==25.1.0
