@@ -5,7 +5,7 @@ import datetime
 import shutil
 import platform
 import ctypes
-from hashlib import sha256
+from argon2 import PasswordHasher
 import argparse
 import logging
 from cryptography.exceptions import InvalidTag
@@ -68,7 +68,8 @@ class CZar:
         self.currentOS = platform.system()
         self.makeDataDirectory()
         # generating master key
-        mSaltFileName = sha256(self.mPassword.encode("utf-8")).hexdigest()
+        ph = PasswordHasher()
+        mSaltFileName = ph.hash(self.mPassword)
         try:
             mSalt = readfromFile(mSaltFileName, self.currentOS)
         except FileNotFoundError:
@@ -195,7 +196,7 @@ class CZar:
         print("=== Get Password ===")
         # Retrieving password
         passId = readPassId()
-        passIdHash = sha256(passId.encode("utf-8")).hexdigest()
+        passIdHash = ph.hash(passId)
         try:
             encUsrName = readfromFile(passIdHash, self.currentOS)
         except FileNotFoundError:
@@ -205,7 +206,7 @@ class CZar:
 
         # Decrypting username
         usrAad = passId.encode("utf-8")
-        baseNonce = sha256(passId.encode("utf-8")).hexdigest()[:24].encode("utf-8")
+        baseNonce = ph.hash(passId)[:24].encode("utf-8")
         try:
             usrName = decrypt(self.mKey, encUsrName, usrAad, baseNonce).decode("utf-8")
         except InvalidTag:
@@ -214,7 +215,7 @@ class CZar:
 
         # decrypting password
         passAad = (passId + usrName).encode("utf-8")
-        aadHash = sha256(passAad).hexdigest()
+        aadHash = ph.hash(passAad)
         # Read Encrypted password
         try:
             encPassword = readfromFile(aadHash, self.currentOS)
@@ -223,10 +224,10 @@ class CZar:
             print("Error: Something went wrong. Try again!")
             return
 
-        passIdHash = sha256(passId.encode("utf-8")).hexdigest()
+        passIdHash = ph.hash(passId)
         passNonceString = passIdHash + self.mPassword
         passNonce = (
-            sha256(passNonceString.encode("utf-8")).hexdigest()[:24].encode("utf-8")
+            ph.hash(passNonceString)[:24].encode("utf-8")
         )
 
         password = decrypt(self.mKey, encPassword, passAad, passNonce)
@@ -240,7 +241,7 @@ class CZar:
         passId = readPassId()
         if readChoice(f"Are you sure you want to delete '{passId}'?") == "n":
             return
-        passIdHash = sha256(passId.encode("utf-8")).hexdigest()
+        passIdHash = ph.hash(passId)
         try:
             encUsrName = readfromFile(passIdHash, self.currentOS)
             deleteFile(passIdHash, self.currentOS)
@@ -250,7 +251,7 @@ class CZar:
             return
         # Decrypting username
         usrAad = passId.encode("utf-8")
-        baseNonce = sha256(passId.encode("utf-8")).hexdigest()[:24].encode("utf-8")
+        baseNonce = ph.hash(passId)[:24].encode("utf-8")
         try:
             usrName = decrypt(self.mKey, encUsrName, usrAad, baseNonce).decode("utf-8")
         except InvalidTag:
@@ -258,7 +259,7 @@ class CZar:
             return
 
         passAad = (passId + usrName).encode("utf-8")
-        aadHash = sha256(passAad).hexdigest()
+        aadHash = ph.hash(passAad)
 
         # Delete password file
         try:
