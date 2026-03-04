@@ -10,12 +10,22 @@ class UserManager:
 
     def __init__(self, currentOS):
         self.currentOS = currentOS
-        self.users_file = "users.json"
+        if currentOS == "Windows":
+            self.users_dir = "data"
+            self.users_file = "data/users.json"
+        else:  # Linux
+            self.users_dir = ".data"
+            self.users_file = ".data/users.json"
         self.ph = PasswordHasher()
         self._ensure_users_file_exists()
 
     def _ensure_users_file_exists(self):
-        """Create users.json if it doesn't exist."""
+        """Create data directory and users.json if they don't exist."""
+        try:
+            os.makedirs(self.users_dir, exist_ok=True)
+        except OSError as e:
+            logging.error("Failed to create users directory: %s", str(e))
+
         if not os.path.exists(self.users_file):
             with open(self.users_file, "w", encoding="utf-8") as f:
                 json.dump({}, f)
