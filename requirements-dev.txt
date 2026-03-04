@@ -1,0 +1,13 @@
+-r requirements.txt
+
+# Build and packaging tools
+pyinstaller==6.3.0
+setuptools>=65.0.0
+wheel>=0.40.0
+
+# Code quality and testing
+pytest==7.4.3
+pytest-cov==4.1.0
+pylint==3.0.3
+flake8==6.1.0
+black==23.12.0

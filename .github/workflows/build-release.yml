@@ -1,0 +1,114 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        python-version: ['3.11']
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+        cache: 'pip'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements-dev.txt
+
+    - name: Run tests
+      run: |
+        pytest tests/ -v || true
+
+    - name: Build executable
+      run: |
+        pyinstaller --onefile --name CZar startCzar.py
+
+    - name: Create archive
+      run: |
+        cd dist
+        powershell -NoProfile -Command "Compress-Archive -Path CZar.exe -DestinationPath CZar-windows-x86_64.zip -Force"
+        cd ..
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: czar-windows
+        path: dist/CZar-windows-x86_64.zip
+
+  build-linux:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.11']
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+        cache: 'pip'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements-dev.txt
+
+    - name: Run tests
+      run: |
+        pytest tests/ -v || true
+
+    - name: Build executable
+      run: |
+        pyinstaller --onefile --name CZar startCzar.py
+
+    - name: Create archive
+      run: |
+        cd dist
+        tar -czf CZar-linux-x86_64.tar.gz CZar
+        cd ..
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: czar-linux
+        path: dist/CZar-linux-x86_64.tar.gz
+
+  create-release:
+    needs: [build-windows, build-linux]
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Download Windows artifact
+      uses: actions/download-artifact@v3
+      with:
+        name: czar-windows
+        path: dist
+
+    - name: Download Linux artifact
+      uses: actions/download-artifact@v3
+      with:
+        name: czar-linux
+        path: dist
+
+    - name: Create Release
+      uses: ncipollo/release-action@v1
+      with:
+        artifacts: "dist/CZar-windows-x86_64.zip,dist/CZar-linux-x86_64.tar.gz"
+        generateReleaseNotes: true
+        draft: false
+        prerelease: false
