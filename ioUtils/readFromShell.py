@@ -50,7 +50,8 @@ def readPassword(passId):
 
 
 def readMode():
-    supportedModes = set(['get', 'set', 'del', 'export', 'import', 'g', 's', 'd', 'e', 'i'])
+    supportedModes = set(['get', 'set', 'del', 'export',
+                         'import', 'g', 's', 'd', 'e', 'i'])
     mode = ''
     while (len(mode) == 0 or (mode not in supportedModes)):
         mode = input(
@@ -75,3 +76,24 @@ def readBackupFileName():
                 else:
                     print('Error: check file name or the read permission.')
     return fileName
+
+
+def readUsername():
+    """Prompt user to enter a username."""
+    username = ''
+    while len(username) == 0:
+        username = input('Enter your username: ').strip()
+        if not username.isalnum():
+            print('Error: Username must contain only letters and numbers.')
+            username = ''
+    return username
+
+
+def readAuthChoice():
+    """Prompt user to login or create account."""
+    choice = ''
+    while choice not in ('l', 'c'):
+        choice = input(
+            'Do you want to [l]ogin or [c]reate a new account? '
+        ).lower().strip()
+    return choice
