@@ -1,7 +1,7 @@
 import os
 import json
 from argon2 import PasswordHasher
-from argon2.exceptions import PasswordHashError
+from argon2.exceptions import InvalidHash, VerifyMismatchError
 import logging
 
 
@@ -55,7 +55,7 @@ class UserManager:
             # Create user-specific data directory
             self._create_user_data_directory(username)
             return True, "User created successfully"
-        except (PasswordHashError, OSError) as e:
+        except (InvalidHash, OSError) as e:
             logging.error("User creation failed: %s", str(e))
             return False, "Failed to create user"
 
@@ -69,7 +69,7 @@ class UserManager:
             stored_hash = users[username]["password_hash"]
             self.ph.verify(stored_hash, password)
             return True, "Authentication successful"
-        except PasswordHashError:
+        except VerifyMismatchError:
             logging.error("Authentication failed for user %s", username)
             return False, "Invalid password"
 

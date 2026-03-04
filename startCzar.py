@@ -5,7 +5,7 @@ import datetime
 import shutil
 import platform
 import ctypes
-from hashlib import sha256
+from hashlib import sha256, pbkdf2_hmac
 from argon2 import PasswordHasher
 import argparse
 import logging
@@ -113,9 +113,14 @@ class CZar:
         self.makeDataDirectory()
         # Initialize password hasher for password IDs
         self.ph = PasswordHasher()
-        # generating master key from password
-        # Derive salt directly from the master password
-        mSalt = sha256(self.mPassword.encode("utf-8")).digest()[:16]
+        # Generate master key from password using PBKDF2
+        # for secure key derivation with username as salt
+        mSalt = pbkdf2_hmac(
+            "sha256",
+            self.mPassword.encode("utf-8"),
+            self.username.encode("utf-8"),
+            480000
+        )
         self.mKey = generateKey(mSalt, self.mPassword.encode("utf-8"))
         self.timerThread = None
 
@@ -211,11 +216,13 @@ class CZar:
         )
 
         passIdHash = sha256(passId.encode("utf-8")).hexdigest()
-        passNonceString = passIdHash + self.mPassword
-        passNonce = (
-            sha256(passNonceString.encode("utf-8")
-                   ).hexdigest()[:24].encode("utf-8")
-        )
+        # Use PBKDF2 to derive nonce from password securely
+        passNonce = pbkdf2_hmac(
+            "sha256",
+            self.mPassword.encode("utf-8"),
+            passIdHash.encode("utf-8"),
+            480000
+        )[:12]
 
         passAad = (passId + usrName).encode("utf-8")
         encPassword, _, _ = encrypt(
@@ -276,9 +283,13 @@ class CZar:
             return
 
         passIdHash = sha256(passId.encode("utf-8")).hexdigest()
-        passNonceString = passIdHash + self.mPassword
-        nonce_hash = sha256(passNonceString.encode("utf-8")).hexdigest()
-        passNonce = nonce_hash[:24].encode("utf-8")
+        # Use PBKDF2 to derive nonce from password securely
+        passNonce = pbkdf2_hmac(
+            "sha256",
+            self.mPassword.encode("utf-8"),
+            passIdHash.encode("utf-8"),
+            480000
+        )[:12]
 
         password = decrypt(self.mKey, encPassword, passAad, passNonce)
         copyToClipboard(password.decode("utf-8"))
