@@ -41,7 +41,7 @@ jobs:
         cd ..
 
     - name: Upload artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: czar-windows
         path: dist/CZar-windows-x86_64.zip
@@ -81,7 +81,7 @@ jobs:
         cd ..
 
     - name: Upload artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: czar-linux
         path: dist/CZar-linux-x86_64.tar.gz
@@ -94,13 +94,13 @@ jobs:
     - uses: actions/checkout@v4
 
     - name: Download Windows artifact
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         name: czar-windows
         path: dist
 
     - name: Download Linux artifact
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         name: czar-linux
         path: dist
