@@ -1,0 +1,24 @@
+/dist__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+.Python
+
+# User and password data (sensitive)
+data/
+.data/
+users.json
+
+# Application logs
+Czar_logs/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
